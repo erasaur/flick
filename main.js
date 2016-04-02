@@ -42,14 +42,14 @@ controller.on('gesture', function (gesture, frame) {
 
 controller.on('swipe', function (swipe, frame) {
   if (swipe.state === 'stop') {
-    var dir = swipe.direction;
+    var dir = swipe.direction; // [ x, y, z ]
 
-    // swiping up, signal ON
-    if (dir[1] > 0.8) {
+    // swiping right, signal ON
+    if (dir[0] > 0.8) {
       signalEvent('swipe_up');
     } 
-    // swiping down, signal OFF
-    else if (dir[1] < -0.8) {
+    // swiping left, signal OFF
+    else if (dir[0] < -0.8) {
       signalEvent('swipe_down');
     }
   }
