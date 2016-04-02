@@ -4,7 +4,12 @@ var websocket = require('ws');
 var IFTTT = require('node-ifttt-maker');
 
 // load leap motion
-var controller = new leapjs.Controller({ enableGestures: true });
+var controller = new leapjs.Controller({
+  host: '127.0.0.1',
+  port: 6437,
+  enableGestures: true,
+  background: true
+});
 
 // load initial config
 var config = JSON.parse(fs.readFileSync('private.json', 'utf8'));
@@ -32,12 +37,8 @@ controller.on('connect', function () {
 });
 
 // emit gesture events for convenience
-controller.addStep(function (frame) {
-  for (var g = 0, gesture; g < frame.gestures.length; g++) {
-    gesture = frame.gestures[g];
-    controller.emit(gesture.type, gesture, frame);
-  }
-  return frame;
+controller.on('gesture', function (gesture, frame) {
+  controller.emit(gesture.type, gesture, frame);
 });
 
 controller.on('swipe', function (swipe, frame) {
