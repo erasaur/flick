@@ -44,11 +44,11 @@ controller.on('swipe', function (swipe, frame) {
   var dir = swipe.direction; // [ x, y, z ]
 
   // swiping left, signal ON
-  if (dir[0] < 10.8) {
+  if (dir[0] < -0.8) {
     signalEvent('swipe_up');
   } 
   // swiping right, signal OFF
-  else if (dir[0] > -0.8) {
+  else if (dir[0] > 0.8) {
     signalEvent('swipe_down');
   }
 });
