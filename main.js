@@ -1,8 +1,10 @@
+var leapjs = require('leapjs');
 var fs = require('fs');
-var websocket = require ('ws');
+var websocket = require('ws');
+var IFTTT = require('node-ifttt-maker');
 
-// connect to leap motion
-var ws = new websocket('ws://127.0.0.1:6437');
+// load leap motion
+var controller = new leapjs.Controller({ enableGestures: true });
 
 // load initial config
 var config = JSON.parse(fs.readFileSync('private.json', 'utf8'));
@@ -10,18 +12,56 @@ var SECRET_KEY = config.ifttt_secret_key;
 console.log(SECRET_KEY);
 
 // load ifttt
-var ifttt = require('node-ifttt-maker')(SECRET_KEY);
+var ifttt = new IFTTT(SECRET_KEY);
+
+// helper methods
+var signalEvent = function (type, params) {
+  console.log('event triggered: ', type);
+  // var options = { event: type, method: 'GET' };
+  // if (typeof params !== 'undefined') {
+  //   options.params = params;
+  // }
+  // ifttt.request(options, function (error) {
+  //   if (error) console.log(error);
+  // });
+};
 
 // listen to motion events
-ws.on('message', function(data, flags) {
-  console.log(data);
-
-  // if data represents hand flick,
-  // ifttt.request({ 
-  //   event: 'hand_flick', 
-  //   method: 'GET', 
-  //   ... 
-  // }, function (error) {
-  //   if (error) console.log(error);
-  // })
+controller.on('connect', function () {
+  console.log('connected.');
 });
+
+// emit gesture events for convenience
+controller.addStep(function (frame) {
+  for (var g = 0, gesture; g < frame.gestures.length; g++) {
+    gesture = frame.gestures[g];
+    controller.emit(gesture.type, gesture, frame);
+  }
+  return frame;
+});
+
+controller.on('swipe', function (swipe, frame) {
+  if (swipe.state === 'stop') {
+    var dir = swipe.direction;
+
+    // swiping up, signal ON
+    if (dir[1] > 0.8) {
+      signalEvent('swipe_up');
+    } 
+    // swiping down, signal OFF
+    else if (dir[1] < -0.8) {
+      signalEvent('swipe_down');
+    }
+  }
+});
+
+controller.on('deviceConnected', function() {
+  console.log('leap device connected.');
+});
+
+controller.on('deviceDisconnected', function() {
+  console.log('leap device disconnected.');
+});
+
+controller.connect();
+
