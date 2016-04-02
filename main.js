@@ -14,7 +14,6 @@ var controller = new leapjs.Controller({
 // load initial config
 var config = JSON.parse(fs.readFileSync('private.json', 'utf8'));
 var SECRET_KEY = config.ifttt_secret_key;
-console.log(SECRET_KEY);
 
 // load ifttt
 var ifttt = new IFTTT(SECRET_KEY);
@@ -56,12 +55,12 @@ controller.on('swipe', function (swipe, frame) {
   }
 });
 
-controller.on('deviceConnected', function() {
-  console.log('leap device connected.');
+controller.on('streamingStarted', function() {
+  console.log('streaming data now.');
 });
 
-controller.on('deviceDisconnected', function() {
-  console.log('leap device disconnected.');
+controller.on('streamingStopped', function() {
+  console.log('stopped streaming data.');
 });
 
 controller.connect();
