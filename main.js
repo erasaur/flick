@@ -1,7 +1,7 @@
 var leapjs = require('leapjs');
 var fs = require('fs');
 var websocket = require('ws');
-var IFTTT = require('node-ifttt-maker');
+var request = require('request');
 
 // load leap motion
 var controller = new leapjs.Controller({
@@ -13,21 +13,26 @@ var controller = new leapjs.Controller({
 
 // load initial config
 var config = JSON.parse(fs.readFileSync('private.json', 'utf8'));
-var SECRET_KEY = config.ifttt_secret_key;
-
-// load ifttt
-var ifttt = new IFTTT(SECRET_KEY);
+var DEVICE_ID = config.particle_device_id;
+var ACCESS_TOKEN = config.particle_access_token;
+var MODES = ['light','music'];
+var currentMode = 'light';
 
 // helper methods
-var signalEvent = function (type, params) {
-  console.log('event triggered: ', type);
-  // var options = { event: type, method: 'GET' };
-  // if (typeof params !== 'undefined') {
-  //   options.params = params;
-  // }
-  // ifttt.request(options, function (error) {
-  //   if (error) console.log(error);
-  // });
+var signalEvent = function (value, params) {
+  if (MODES.indexOf(currentMode) == -1) {
+    console.log('unrecognized mode, using default');
+    currentMode = MODES[0];
+  }
+  console.log('event triggered:', value, 'for mode:', currentMode);
+
+  var call = 'toggle_' + currentMode;
+  var postUrl = 'https://api.particle.io/v1/devices/' + DEVICE_ID + '/' + call + 
+                '?access_token=' + ACCESS_TOKEN
+  var options = { form: { 'args': value } };
+  request.post(postUrl, options, function (error) {
+    if (error) console.log(error);
+  });
 };
 
 // listen to motion events
@@ -40,16 +45,26 @@ controller.on('gesture', function (gesture, frame) {
   controller.emit(gesture.type, gesture, frame);
 });
 
+controller.on('keyTap', function (tap, frame) {
+  console.log('changing mode to light');
+  currentMode = 'light';
+});
+
+controller.on('circle', function (tap, frame) {
+  console.log('changing mode to music');
+  currentMode = 'music';
+});
+
 controller.on('swipe', function (swipe, frame) {
   var dir = swipe.direction; // [ x, y, z ]
 
   // swiping left, signal ON
   if (dir[0] < -0.8) {
-    signalEvent('swipe_up');
+    signalEvent('on');
   } 
   // swiping right, signal OFF
   else if (dir[0] > 0.8) {
-    signalEvent('swipe_down');
+    signalEvent('off');
   }
 });
 
