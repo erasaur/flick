@@ -2,4 +2,4 @@
 *.swp
 *.swo
 node_modules/
-private.json
+leap/private.json
