@@ -1,0 +1,31 @@
+<!-- Replace your-device-ID-goes-here with your actual device ID
+and replace your-access-token-goes-here with your actual access token-->
+<!DOCTYPE>
+<html>
+  <body>
+  <center>
+  <br>
+  <br>
+  <br>
+  <form action="https://api.particle.io/v1/devices/410031000447343337373739/toggle_light?access_token=0f30d5d6f0c120f5fe0eaf0186c55c046cd97f91" method="POST">
+    
+    <input type="radio" name="args" value="on">Turn the LED on.
+    <br>
+    <input type="radio" name="args" value="off">Turn the LED off.
+    <br>
+    <br>
+    <input type="submit" value="Do it!">
+  </form>
+  <form action="https://api.particle.io/v1/devices/410031000447343337373739/toggle_music?access_token=0f30d5d6f0c120f5fe0eaf0186c55c046cd97f91" method="POST">
+    
+    <input type="radio" name="args" value="on">Turn the music on.
+    <br>
+    <input type="radio" name="args" value="off">Turn the music off.
+    <br>
+    <br>
+    <input type="submit" value="Do it!">
+  </form>
+
+  </center>
+  </body>
+</html>
