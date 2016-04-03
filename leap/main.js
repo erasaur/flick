@@ -22,7 +22,20 @@ var currentMode = 'light';
 var ifttt = new IFTTT(IFTTT_SECRET);
 var in_trigger = false;
 
+var args = process.argv;
+var currentEnv = 'all';
+if (MODES.indexOf(args[2]) !== -1) {
+  currentEnv = args[2];
+}
+
+console.log('Running with environment:', currentEnv);
+
 // helper methods
+var changeMode = function (mode) {
+  if (currentEnv === 'all' || currentEnv === mode) {
+    currentMode = mode;
+  }
+};
 var signalEvent = function (value, params) {
   if (in_trigger) return;
   in_trigger = true;
@@ -41,14 +54,12 @@ var signalEvent = function (value, params) {
     postUrl = 'https://api.particle.io/v1/devices/' + DEVICE_ID + '/' + call + 
               '?access_token=' + ACCESS_TOKEN
     options.form = { 'args': value };
-  } else if (currentMode === 'music') {
-    call += '_' + value;
+  } else { // music or navigation
+    if (currentMode === 'music') {
+      call += '_' + value;
+    }
     postUrl = 'https://maker.ifttt.com/trigger/' + call + '/with/key/' + 
                IFTTT_SECRET 
-  } else if (currentMode === 'navigation') {
-    postUrl = 'https://maker.ifttt.com/trigger/' + call + '/with/key/' + 
-               IFTTT_SECRET 
-    options.form = { 'Value1': 'test' };
   }
 
   request.post(postUrl, options, function (error) {
@@ -69,17 +80,17 @@ controller.on('gesture', function (gesture, frame) {
 
 controller.on('keyTap', function (tap, frame) {
   console.log('changing mode to light');
-  currentMode = 'light';
+  changeMode('light');
 });
 
 controller.on('screenTap', function (tap, frame) {
   console.log('changing mode to navigation');
-  currentMode = 'navigation';
+  changeMode('navigation');
 });
 
 controller.on('circle', function (tap, frame) {
   console.log('changing mode to music');
-  currentMode = 'music';
+  changeMode('music');
 });
 
 controller.on('swipe', function (swipe, frame) {
