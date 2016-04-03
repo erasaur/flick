@@ -26,6 +26,7 @@ var args = process.argv;
 var currentEnv = 'all';
 if (MODES.indexOf(args[2]) !== -1) {
   currentEnv = args[2];
+  currentMode = currentEnv;
 }
 
 console.log('Running with environment:', currentEnv);
@@ -33,6 +34,7 @@ console.log('Running with environment:', currentEnv);
 // helper methods
 var changeMode = function (mode) {
   if (currentEnv === 'all' || currentEnv === mode) {
+    console.log('changing mode to', mode);
     currentMode = mode;
   }
 };
@@ -79,17 +81,14 @@ controller.on('gesture', function (gesture, frame) {
 });
 
 controller.on('keyTap', function (tap, frame) {
-  console.log('changing mode to light');
   changeMode('light');
 });
 
 controller.on('screenTap', function (tap, frame) {
-  console.log('changing mode to navigation');
   changeMode('navigation');
 });
 
 controller.on('circle', function (tap, frame) {
-  console.log('changing mode to music');
   changeMode('music');
 });
 
