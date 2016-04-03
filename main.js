@@ -2,6 +2,7 @@ var leapjs = require('leapjs');
 var fs = require('fs');
 var websocket = require('ws');
 var request = require('request');
+var IFTTT = require('node-ifttt-maker');
 
 // load leap motion
 var controller = new leapjs.Controller({
@@ -13,13 +14,19 @@ var controller = new leapjs.Controller({
 
 // load initial config
 var config = JSON.parse(fs.readFileSync('private.json', 'utf8'));
+var IFTTT_SECRET = config.ifttt_secret_key;
 var DEVICE_ID = config.particle_device_id;
 var ACCESS_TOKEN = config.particle_access_token;
-var MODES = ['light','music'];
+var MODES = ['light','music','navigation'];
 var currentMode = 'light';
+var ifttt = new IFTTT(IFTTT_SECRET);
+var in_trigger = false;
 
 // helper methods
 var signalEvent = function (value, params) {
+  if (in_trigger) return;
+  in_trigger = true;
+
   if (MODES.indexOf(currentMode) == -1) {
     console.log('unrecognized mode, using default');
     currentMode = MODES[0];
@@ -27,11 +34,24 @@ var signalEvent = function (value, params) {
   console.log('event triggered:', value, 'for mode:', currentMode);
 
   var call = 'toggle_' + currentMode;
-  var postUrl = 'https://api.particle.io/v1/devices/' + DEVICE_ID + '/' + call + 
-                '?access_token=' + ACCESS_TOKEN
-  var options = { form: { 'args': value } };
+  var options = {};
+  var postUrl;
+
+  if (currentMode === 'light') {
+    postUrl = 'https://api.particle.io/v1/devices/' + DEVICE_ID + '/' + call + 
+              '?access_token=' + ACCESS_TOKEN
+    options.form = { 'args': value };
+  } else { // music or navigation
+    if (currentMode === 'music') {
+      call += '_' + value;
+    }
+    postUrl = 'https://maker.ifttt.com/trigger/' + call + '/with/key/' + 
+               IFTTT_SECRET 
+  }
+
   request.post(postUrl, options, function (error) {
     if (error) console.log(error);
+    in_trigger = false;
   });
 };
 
@@ -48,6 +68,11 @@ controller.on('gesture', function (gesture, frame) {
 controller.on('keyTap', function (tap, frame) {
   console.log('changing mode to light');
   currentMode = 'light';
+});
+
+controller.on('screenTap', function (tap, frame) {
+  console.log('changing mode to navigation');
+  currentMode = 'navigation';
 });
 
 controller.on('circle', function (tap, frame) {
