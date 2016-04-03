@@ -41,12 +41,14 @@ var signalEvent = function (value, params) {
     postUrl = 'https://api.particle.io/v1/devices/' + DEVICE_ID + '/' + call + 
               '?access_token=' + ACCESS_TOKEN
     options.form = { 'args': value };
-  } else { // music or navigation
-    if (currentMode === 'music') {
-      call += '_' + value;
-    }
+  } else if (currentMode === 'music') {
+    call += '_' + value;
     postUrl = 'https://maker.ifttt.com/trigger/' + call + '/with/key/' + 
                IFTTT_SECRET 
+  } else if (currentMode === 'navigation') {
+    postUrl = 'https://maker.ifttt.com/trigger/' + call + '/with/key/' + 
+               IFTTT_SECRET 
+    options.form = { 'Value1': 'test' };
   }
 
   request.post(postUrl, options, function (error) {
